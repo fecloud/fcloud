@@ -50,12 +50,13 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 		ServerSocket socket;
 		try {
 			socket = new ServerSocket(port);
+			logger.debug("server port:" + port);
 			Socket client = null;
 			ArduinoSocketWorker socketWorker;
 			while (true) {
 				logger.debug("workers.isEmpty():" + workers.isEmpty());
 				if (workers.isEmpty()) {
-					logger.debug("server accept");
+					logger.debug("server accept ");
 					client = socket.accept();
 					socketWorker = new ArduinoSocketWorker(client);
 					workers.add(socketWorker);

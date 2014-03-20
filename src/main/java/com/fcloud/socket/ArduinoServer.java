@@ -13,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
@@ -29,6 +30,8 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	private int port;
 
 	private List<ArduinoSocketWorker> workers;
+	
+	private boolean isConnnetd;
 
 	/**
 	 * @param port
@@ -77,6 +80,7 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	@Override
 	public void onOpen() {
 		logger.debug("onOpen");
+		isConnnetd = true;
 	}
 
 	/*
@@ -87,6 +91,7 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	@Override
 	public void onClose() {
 		logger.debug("onClose");
+		isConnnetd = false;
 	}
 
 	/*
@@ -97,6 +102,9 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	@Override
 	public void onMessage(String message) {
 		logger.debug("onMessage message:" + message);
+		if(message.contains("hand")){
+			sendln("ok");
+		}
 	}
 
 	/*
@@ -119,7 +127,7 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	}
 
 	public boolean sendln(String line) {
-		return send(line + "\n");
+		return send(line + "\r\n");
 	}
 
 	public boolean flush() {
@@ -184,8 +192,7 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 					socket = null;
 					onClose();
 				}
-				workers.remove(this);
-				socket = null;
+				
 			}
 			return false;
 		}
@@ -210,7 +217,19 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 	}
 
 	public static void main(String[] args) {
-		new ArduinoServer(80).start();
+		ArduinoServer arduinoServer = new ArduinoServer(80);
+		arduinoServer.start();
+		Scanner scanner = new Scanner(System.in);
+		while(true){
+			System.out.println("input:");
+			String s = scanner.nextLine();
+			if(arduinoServer.isConnnetd){
+				arduinoServer.sendln(s);
+				arduinoServer.flush();
+			}else {
+				System.err.println("not conneted!");
+			}
+		}
 	}
 
 }

@@ -240,7 +240,7 @@ public class ArduinoServer extends Thread implements ArduinoSocket {
 		if(args.length >0){
 			port = Integer.valueOf(args[0]);
 		}
-		ArduinoServer arduinoServer = new ArduinoServer(80);
+		ArduinoServer arduinoServer = new ArduinoServer(port);
 		arduinoServer.start();
 		Scanner scanner = new Scanner(System.in);
 		while (true) {

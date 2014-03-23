@@ -5,8 +5,15 @@
  */
 package com.fcloud.utils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+
+import sun.net.www.protocol.http.HttpURLConnection;
 
 /**
  * The class <code>Tools</code>
@@ -61,4 +68,21 @@ public final class Tools {
 		return false;
 	}
 
+	public static boolean httpRequest(String url) throws IOException {
+		URL url2 = new URL(url);
+		HttpURLConnection conn = (HttpURLConnection) url2.openConnection();
+		conn.setDoInput(true);
+		conn.setDoOutput(true);
+		conn.setReadTimeout(3000);
+		conn.setConnectTimeout(3000);
+		if (conn.getResponseCode() == 200) {
+			final InputStream in = conn.getInputStream();
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+			String line = reader.readLine();
+			if (null != line && line.equals("200")) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -54,6 +54,16 @@ public class WXTextMessageProccess implements WXProcess {
 			final String content = message.getContent();
 			if (content.contains("wd") || content.contains("温度") || Tools.isNum(content)) {
 				result = temperature(content);
+			} else if (content.contains("cmd")) {
+				String url = "http://113.81.229.232:8888/arduino/Arduino?cmd="
+						+ content.replace("cmd", "").trim();
+				result += url;
+				try {
+					result += "" + Tools.httpRequest(url);
+				} catch (IOException e) {
+					logger.error("", e);
+					result += "error";
+				}
 			} else {
 				result = "发送 wd 、温度 等关键字 既可查询传感器温度信息/:love";
 			}
@@ -83,7 +93,7 @@ public class WXTextMessageProccess implements WXProcess {
 				if (list != null) {
 					for (Temperature t : list) {
 						builder.append(t.getTemperature() + "℃  "
-								+ DateTimeUtil.toText(t.getTime(), "HH:mm") +"\n");
+								+ DateTimeUtil.toText(t.getTime(), "HH:mm") + "\n");
 					}
 
 				}

@@ -65,7 +65,53 @@ public class WXPlatform extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
 			IOException {
+		checkMessage(req, resp, true);
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
+	 * , javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		// 此处响应平台消息
+		req.setCharacterEncoding("UTF-8");
+		resp.setCharacterEncoding("UTF-8");
+
+		if (checkMessage(req, resp, false)) {
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(
+					req.getInputStream(), "UTF-8"));
+			StringBuffer buffer = new StringBuffer();
+			String line = null;
+
+			while (null != (line = reader.readLine())) {
+				buffer.append(line);
+			}
+
+			if (buffer.length() > 0) {
+				logger.debug("recevie from weixin server:" + buffer.toString());
+				// 分析xml
+				XStream stream = new XStream();
+				stream.alias("xml", WXMessage.class);
+				WXMessage message = (WXMessage) stream.fromXML(buffer.toString());
+				if (null != message) {
+					final String result = messageProcess(message);
+					if (null != result) {
+						logger.debug("result to weixin server:" + result);
+						resp.getWriter().append(result);
+					}
+				}
+			}
+		}
+
+	}
+
+	protected boolean checkMessage(HttpServletRequest req, HttpServletResponse resp,
+			boolean response) throws IOException {
 		final String signature = req.getParameter("signature");
 		final String timestamp = req.getParameter("timestamp");
 		final String nonce = req.getParameter("nonce");
@@ -92,53 +138,16 @@ public class WXPlatform extends HttpServlet {
 
 			if (signature.equals(weixin)) {
 				// 验证成功
-				resp.getWriter().write(echostr);
+				if (response)
+					resp.getWriter().write(echostr);
+				return true;
 			} else {
 				resp.getWriter().write("valid fail");
 			}
 		} else {
 			logger.warn("require parameter signature,timestamp,nonce,echostr");
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest
-	 * , javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		// 此处响应平台消息
-		req.setCharacterEncoding("UTF-8");
-		resp.setCharacterEncoding("UTF-8");
-
-		final BufferedReader reader = new BufferedReader(
-				new InputStreamReader(req.getInputStream(),"UTF-8"));
-		StringBuffer buffer = new StringBuffer();
-		String line = null;
-
-		while (null != (line = reader.readLine())) {
-			buffer.append(line);
-		}
-
-		if (buffer.length() > 0) {
-			logger.debug("recevie from weixin server:" + buffer.toString());
-			// 分析xml
-			XStream stream = new XStream();
-			stream.alias("xml", WXMessage.class);
-			WXMessage message = (WXMessage) stream.fromXML(buffer.toString());
-			if (null != message) {
-				final String result = messageProcess(message);
-				if (null != result) {
-					logger.debug("result to weixin server:" + result);
-					resp.getWriter().append(result);
-				}
-			}
-		}
-
+		return false;
 	}
 
 	protected String messageProcess(WXMessage message) {

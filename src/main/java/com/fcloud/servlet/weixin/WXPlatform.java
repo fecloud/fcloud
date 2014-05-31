@@ -82,7 +82,7 @@ public class WXPlatform extends HttpServlet {
 		req.setCharacterEncoding("UTF-8");
 		resp.setCharacterEncoding("UTF-8");
 
-		if (checkMessage(req, resp, false)) {
+//		if (checkMessage(req, resp, false)) {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(
 					req.getInputStream(), "UTF-8"));
 			StringBuffer buffer = new StringBuffer();
@@ -106,7 +106,7 @@ public class WXPlatform extends HttpServlet {
 					}
 				}
 			}
-		}
+//		}
 
 	}
 
